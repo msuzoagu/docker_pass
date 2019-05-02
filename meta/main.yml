@@ -1,9 +1,9 @@
 ---
 galaxy_info:
   role_name: docker_pass
-  author: MsUzoAgu
+  author: msuzoagu
   description: sets up docker to use pass for authentication via docker_credential_helpers
-  company: MsUzoAgu
+  company: msuzoagu
   license: license (GPLv3)
   min_ansible_version: 2.4
   github_branch: master
