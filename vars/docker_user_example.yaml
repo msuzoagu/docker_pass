@@ -1,0 +1,17 @@
+---
+# Ideally variables should be defined in
+# 1 place. Personally, I define almost 
+# all variables in a top level file that
+# relies on an applications environment 
+# Example: 
+#         test/group_vars/all.yaml
+# contains variables for test env
+#
+# This allows me to make use of role vars
+# to overwrite variables that need to be 
+# overwritten.
+docker_user: 
+  name: your_docker_user_name  
+  auth_subkey_id: subkey_id
+  auth_subkey_init: pass is initialized
+  auth_subkey_passphrase: subkey_passphrase

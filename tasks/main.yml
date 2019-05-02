@@ -1,0 +1,144 @@
+---
+- include_vars: gpg_certs.yaml
+
+- name: Check for existing docker_credentail_pass
+  stat:
+    path: /usr/bin/docker-credential-pass
+  register: credential_path
+
+- name: Download and unarchive docker credential store
+  unarchive:
+    remote_src: yes
+    src: "{{ credential_url }}"
+    dest: /usr/bin
+    validate_certs: yes 
+  when: credential_path.stat.exists == false
+
+- name: status of docker directory 
+  stat: 
+    path: "{{ docker_dir }}/config.json"  
+  register: dock_config_dir
+
+- name: create temporary directory 
+  file: 
+    state: directory
+    path: "{{ temp_dir }}"
+    owner: "{{ docker_user.name }}"
+    group: docker 
+    mode: 0700
+  when: dock_config_dir.stat.exists == false
+
+- name: copy public gpg key
+  copy: 
+    content: "{{ public }}"
+    dest: "{{ temp_dir }}/public_key"
+    owner: "{{ docker_user.name}}"
+    group: docker 
+    mode: 0700 
+  when: dock_config_dir.stat.exists == false
+
+- name: copy private gpg key
+  copy: 
+    content: "{{ private }}"
+    dest: "{{ temp_dir }}/private_key"
+    owner: "{{ docker_user.name}}"
+    group: docker 
+    mode: 0700 
+  when: dock_config_dir.stat.exists == false
+
+- name: add public key to gpg keyring 
+  command: "gpg2 --import {{ temp_dir }}/public_key"
+  args: 
+    creates: "{{ gnupg_dir }}/pubring.kbx"
+  when: dock_config_dir.stat.exists == false
+
+- name: add private key to gpg keyring
+  command: "gpg2 --allow-secret-key-import --batch --import {{ temp_dir }}/private_key"
+  args: 
+    creates: "{{ gnupg_dir }}/.gnupg/private_key"
+  when: dock_config_dir.stat.exists == false
+
+- name: shred public key file
+  command: "shred -u -z {{ temp_dir }}/public_key"
+  args:
+    chdir: "{{ temp_dir }}"
+  when: dock_config_dir.stat.exists == false
+
+- name: shred private key file
+  command: "shred -u -z {{ temp_dir }}/private_key"
+  args:
+    chdir: "{{ temp_dir }}"
+  when: dock_config_dir.stat.exists == false
+
+- name: remove temporary directory
+  file:
+    path: "{{ temp_dir }}"
+    state: absent
+  when: dock_config_dir.stat.exists == false
+
+- name: set ownertrust of imported key
+  shell:  |
+    set timeout 300
+    spawn /usr/bin/gpg2 --edit-key "{{ docker_user.auth_subkey_id }}" trust quit
+    expect "Your decision? " { send "5\r" }
+    expect "Do you really want to set this key to ultimate trust? (y/N) " { send "y\r" }
+    expect eof
+    exit
+  args:
+    executable: /usr/bin/expect
+  when: dock_config_dir.stat.exists == false
+
+- name: reload gpg agent 
+  command: gpg-connect-agent reloadagent /bye
+
+- name: pass init gpg key
+  shell: |
+    set timeout 300
+    spawn /usr/bin/pass init "{{ docker_user.auth_subkey_id }}"
+    expect eof
+    exit
+  args:
+    executable: /usr/bin/expect
+  when: dock_config_dir.stat.exists == false  
+
+- name: initialize credential helper
+  shell: |
+    set timeout 300
+    spawn /usr/bin/pass insert docker-credential-helpers/docker-pass-initialized-check
+    expect "Enter password for docker-credential-helpers/docker-pass-initialized-check:" { send "{{ docker_user.auth_subkey_init }}\r" }
+    expect "Retype password for docker-credential-helpers/docker-pass-initialized-check:" { send "{{ docker_user.auth_subkey_init }}\r" }
+    expect eof
+    exit
+  args:
+    executable: /usr/bin/expect
+  when: dock_config_dir.stat.exists == false
+
+- name: enter passphrase of gpg secret key 
+  shell: |
+    set timeout 60
+    spawn /usr/bin/pass show docker-credential-helpers/docker-pass-initialized-check
+    expect "Please enter the passphrase to unlock the OpenPGP secret key:" { send "{{ docker_user.auth_subkey_passphrase }}\r" }
+    expect "Please enter the passphrase to unlock the OpenPGP secret key:" { send "{{ docker_user.auth_subkey_passphrase }}\r" }
+    expect eof
+    exit
+  args:
+    executable: /usr/bin/expect  
+  when: dock_config_dir.stat.exists == false  
+
+- name: create hidden docker directory 
+  file: 
+    path: "{{ docker_dir }}"
+    state: directory 
+    owner: "{{ docker_user.name }}" 
+    group: docker 
+    mode: 0755
+  when: dock_config_dir.stat.exists == false
+
+- name: add docker config file
+  copy: 
+    src: config_json.j2
+    dest: "{{ docker_dir }}/config.json"
+    owner: "{{ docker_user.name }}" 
+    group: docker
+    mode: 0755 
+  when: dock_config_dir.stat.exists == false

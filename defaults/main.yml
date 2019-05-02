@@ -1,0 +1,8 @@
+---
+gnupg_dir: "/home/{{ docker_user.name }}/.gnupg"
+temp_dir: "/home/{{ docker_user.name }}/.gnupg_import"
+docker_dir: "/home/{{ docker_user.name }}/.docker"
+auth_subkey_init: pass is initialized
+auth_subkey_id: "{{ docker_user.auth_subkey_id }}"
+auth_subkey_passphrase: "{{ docker_user.auth_subkey_passphrase}}"
+credential_url: "https://github.com/docker/docker-credential-helpers/releases/download/v0.6.0/docker-credential-pass-v0.6.0-amd64.tar.gz"
