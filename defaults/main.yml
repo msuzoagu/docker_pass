@@ -1,8 +1,20 @@
 ---
+# Ideally variables should be defined in
+# 1 place. Personally, I define almost 
+# all variables in a top level file that
+# relies on an applications environment 
+# Example: 
+#         test/group_vars/all.yaml
+# contains variables for test env
+docker_user: 
+  name: your_docker_user_name  
+  auth_subkey_id: subkey_id
+  auth_subkey_init: pass is initialized
+  auth_subkey_passphrase: subkey_passphrase
+
 gnupg_dir: "/home/{{ docker_user.name }}/.gnupg"
 temp_dir: "/home/{{ docker_user.name }}/.gnupg_import"
 docker_dir: "/home/{{ docker_user.name }}/.docker"
 auth_subkey_init: pass is initialized
 auth_subkey_id: "{{ docker_user.auth_subkey_id }}"
 auth_subkey_passphrase: "{{ docker_user.auth_subkey_passphrase}}"
-credential_url: "https://github.com/docker/docker-credential-helpers/releases/download/v0.6.0/docker-credential-pass-v0.6.0-amd64.tar.gz"

@@ -6,10 +6,10 @@ Sets up docker to use pass for authentication via docker_credential_helpers
 Requirements
 ------------
 - Docker 
-  If following security best practice and running docker as non-root user, note that due to [tty](https://lists.gnupg.org/pipermail/gnupg-users/2016-October/056854.html) [owership](https://dev.gnupg.org/T2739) [requirements](https://dev.gnupg.org/T3908), this role is effective only when: 
+  If following security best practice and running docker as non-root user, note that due to [tty](https://lists.gnupg.org/pipermail/gnupg-users/2016-October/056854.html) [owership](https://dev.gnupg.org/T2739) [requirements](https://dev.gnupg.org/T3908), this role is effective only when both: 
   + docker
   + [docker_credential_helpers](https://github.com/docker/docker-credential-helpers)
-  have both been installed and configured BEFORE this role is run as role does not make use of sudo commands.  
+  have been installed and configured BEFORE running `docker_pass`. 
 
 Role tested on: 
   - docker-ce | 5:18.09.1~3-0~ubuntu-xenial 

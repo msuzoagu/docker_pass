@@ -1,19 +1,6 @@
 ---
 - include_vars: gpg_certs.yaml
 
-- name: Check for existing docker_credentail_pass
-  stat:
-    path: /usr/bin/docker-credential-pass
-  register: credential_path
-
-- name: Download and unarchive docker credential store
-  unarchive:
-    remote_src: yes
-    src: "{{ credential_url }}"
-    dest: /usr/bin
-    validate_certs: yes 
-  when: credential_path.stat.exists == false
-
 - name: status of docker directory 
   stat: 
     path: "{{ docker_dir }}/config.json"  
