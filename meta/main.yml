@@ -1,18 +1,21 @@
 ---
 galaxy_info:
+  author: Uzo Agu
   role_name: docker_pass
-  author: msuzoagu
-  description: sets up docker to use pass for authentication via docker_credential_helpers
-  company: msuzoagu
+  description: use pass for docker authentication via docker_credential_helpers
+  company: none
   license: license (GPLv3)
   min_ansible_version: 2.4
   github_branch: master
+
   platforms:
-  - name: Ubuntu
-    versions:
-    - bionic
+    - name: Ubuntu
+      versions:
+        - bionic
+
   galaxy_tags:
-  - security 
-  - docker 
-  - gpg
+    - security
+    - docker
+    - gpg
+
 dependencies: []
