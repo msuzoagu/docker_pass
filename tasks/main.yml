@@ -4,7 +4,7 @@
 - name: status of docker directory
   stat:
     path: "{{ docker_dir }}/config.json"
-  register: docker_config_dir
+  register: dock_config_dir
 
 - set_fact:
     docker_config_dir_exists: "{{ docker_config_dir.stat.exists }}"
@@ -22,7 +22,7 @@
   copy:
     content: "{{ public }}"
     dest: "{{ temp_dir }}/public_key"
-    owner: "{{ docker_user.name }}"
+    owner: "{{ docker_user.name}}"
     group: docker
     mode: 0700
   when: not docker_config_dir_exists
@@ -31,7 +31,7 @@
   copy:
     content: "{{ private }}"
     dest: "{{ temp_dir }}/private_key"
-    owner: "{{ docker_user.name }}"
+    owner: "{{ docker_user.name}}"
     group: docker
     mode: 0700
   when: not docker_config_dir_exists
@@ -43,8 +43,7 @@
   when: not docker_config_dir_exists
 
 - name: add private key to gpg keyring
-  command: "gpg2 --allow-secret-key-import --batch --import {{ temp_dir
-  }}/private_key"
+  command: "gpg2 --allow-secret-key-import --batch --import {{ temp_dir }}/private_key"
   args:
     creates: "{{ gnupg_dir }}/.gnupg/private_key"
   when: not docker_config_dir_exists
@@ -68,13 +67,11 @@
   when: not docker_config_dir_exists
 
 - name: set ownertrust of imported key
-  shell: |
+  shell:  |
     set timeout 300
-    spawn /usr/bin/gpg2 --edit-key "{{ docker_user.auth_subkey_id }}" trust
-    quit
+    spawn /usr/bin/gpg2 --edit-key "{{ docker_user.auth_subkey_id }}" trust quit
     expect "Your decision? " { send "5\r" }
-    expect "Do you really want to set this key to ultimate trust? (y/N) " { send
-    "y\r" }
+    expect "Do you really want to set this key to ultimate trust? (y/N) " { send "y\r" }
     expect eof
     exit
   args:
@@ -97,14 +94,9 @@
 - name: initialize credential helper
   shell: |
     set timeout 300
-    spawn /usr/bin/pass insert
-    docker-credential-helpers/docker-pass-initialized-check
-    expect "Enter password for
-    docker-credential-helpers/docker-pass-initialized-check:" { send "{{
-    docker_user.auth_subkey_init }}\r" }
-    expect "Retype password for
-    docker-credential-helpers/docker-pass-initialized-check:" { send "{{
-    docker_user.auth_subkey_init }}\r" }
+    spawn /usr/bin/pass insert docker-credential-helpers/docker-pass-initialized-check
+    expect "Enter password for docker-credential-helpers/docker-pass-initialized-check:" { send "{{ docker_user.auth_subkey_init }}\r" }
+    expect "Retype password for docker-credential-helpers/docker-pass-initialized-check:" { send "{{ docker_user.auth_subkey_init }}\r" }
     expect eof
     exit
   args:
@@ -114,12 +106,9 @@
 - name: enter passphrase of gpg secret key
   shell: |
     set timeout 60
-    spawn /usr/bin/pass show
-    docker-credential-helpers/docker-pass-initialized-check
-    expect "Please enter the passphrase to unlock the OpenPGP secret key:" {
-    send "{{ docker_user.auth_subkey_passphrase }}\r" }
-    expect "Please enter the passphrase to unlock the OpenPGP secret key:" {
-    send "{{ docker_user.auth_subkey_passphrase }}\r" }
+    spawn /usr/bin/pass show docker-credential-helpers/docker-pass-initialized-check
+    expect "Please enter the passphrase to unlock the OpenPGP secret key:" { send "{{ docker_user.auth_subkey_passphrase }}\r" }
+    expect "Please enter the passphrase to unlock the OpenPGP secret key:" { send "{{ docker_user.auth_subkey_passphrase }}\r" }
     expect eof
     exit
   args:
